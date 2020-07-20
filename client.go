@@ -28,7 +28,7 @@ type Config struct {
 }
 
 // 节点信息
-type Node struct {
+type _Node struct {
 	IP   string `json:"ip"`
 	Port uint16 `json:"port"`
 }
@@ -72,7 +72,7 @@ func parseResp(resp *http.Response) (map[string]string, error) {
 	}
 
 	if resp.StatusCode == 200 {
-		var node Node
+		var node _Node
 		if err = json.Unmarshal(body, &node); err != nil {
 			return respData, err
 		}
