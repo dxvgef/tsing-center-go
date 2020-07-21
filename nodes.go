@@ -3,7 +3,6 @@ package tsing_center_go
 import (
 	"context"
 	"encoding/base64"
-	"log"
 	"math"
 	"net/http"
 	"net/url"
@@ -94,7 +93,6 @@ func (self *Client) SetNode(serviceID string, node Node) (int, error) {
 
 	ctx, cancel := context.WithTimeout(context.Background(), self.timeout)
 	defer cancel()
-	log.Println(self.addr + "/nodes/" + serviceID + "/" + nodeStr)
 	req, err = http.NewRequestWithContext(ctx, "PUT", self.addr+"/nodes/"+serviceID+"/"+nodeStr, strings.NewReader(values.Encode()))
 	if err != nil {
 		return 500, err
