@@ -22,9 +22,9 @@ type Client struct {
 type Config struct {
 	Addr          string // 服务端地址
 	Secret        string // 服务端api调用密码
-	TTL           int    // 生命周期(秒)
-	TouchInterval int    // 自动触活的间隔时间(秒)
-	Timeout       int    // 操作超时时间(秒)
+	TTL           uint   // 生命周期(秒)
+	TouchInterval uint   // 自动触活的间隔时间(秒)
+	Timeout       uint   // 操作超时时间(秒)
 }
 
 type ErrorResponse struct {
