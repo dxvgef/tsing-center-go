@@ -43,6 +43,18 @@ func TestAdd(t *testing.T) {
 		return
 	}
 
+	// 添加节点
+	if status, err = cli.AddNode("demo", Node{
+		IP:     ip,
+		Port:   90,
+		Weight: 1,
+		TTL:    10,
+		Meta:   `{"OS":"Mac OS"}`,
+	}); err != nil {
+		t.Error(err, status)
+		return
+	}
+
 }
 
 func TestSet(t *testing.T) {
