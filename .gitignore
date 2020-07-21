@@ -1,6 +1,7 @@
 .idea
 /bin
 /output
+go.sum
 *.iml
 .DS_Store
 *.test
@@ -8,4 +9,4 @@
 .history
 *.log
 *.bak
-config.dev.yml
+

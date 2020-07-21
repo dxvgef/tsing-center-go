@@ -1,11 +1,11 @@
 package tsing_center_go
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"io/ioutil"
 	"net/http"
-	"strconv"
 	"time"
 )
 
@@ -27,14 +27,12 @@ type Config struct {
 	Timeout       int    // 操作超时时间(秒)
 }
 
-// 节点信息
-type _Node struct {
-	IP   string `json:"ip"`
-	Port uint16 `json:"port"`
+type ErrorResponse struct {
+	Text string `json:"error"`
 }
 
-// 接收自动触活时的错误的处理器
-type AutoTouchErrorHandler func(err error)
+// 接收自动触活时的错误的处理器(状态码，错误文本)
+type AutoTouchErrorHandler func(int, error)
 
 // 新建客户端实例
 func New(config Config) (*Client, error) {
@@ -51,39 +49,66 @@ func New(config Config) (*Client, error) {
 	return &cli, nil
 }
 
-// 解析响应
-func parseResp(resp *http.Response) (map[string]string, error) {
-	respData := make(map[string]string)
-
-	switch resp.StatusCode {
-	case 204:
-		return respData, nil
-	case 401:
-		return respData, errors.New(http.StatusText(http.StatusUnauthorized))
-	case 500:
-		return respData, errors.New(http.StatusText(http.StatusInternalServerError))
-	case 501:
-		return respData, errors.New(http.StatusText(http.StatusNotImplemented))
-	}
-
-	body, err := ioutil.ReadAll(resp.Body)
+// 获取当前节点的IP地址
+func (self *Client) GetIP() (string, int, error) {
+	var (
+		err    error
+		req    *http.Request
+		resp   *http.Response
+		hc     http.Client
+		body   []byte
+		status int
+	)
+	ctx, cancel := context.WithTimeout(context.Background(), self.timeout)
+	defer cancel()
+	req, err = http.NewRequestWithContext(ctx, "GET", self.addr+"/ip", nil)
 	if err != nil {
-		return respData, err
+		return "", 500, err
+	}
+	req.Header.Set("SECRET", self.secret)
+
+	resp, err = hc.Do(req)
+	if err != nil {
+		return "", 500, err
 	}
 
-	if resp.StatusCode == 200 {
-		var node _Node
-		if err = json.Unmarshal(body, &node); err != nil {
-			return respData, err
+	body, status, err = parseBody(resp)
+	if err != nil {
+		return "", status, err
+	}
+	return string(body), 200, nil
+}
+
+// 解析响应body
+func parseBody(resp *http.Response) ([]byte, int, error) {
+	switch resp.StatusCode {
+	case 200:
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return nil, 500, err
 		}
-		respData["ip"] = node.IP
-		respData["port"] = strconv.FormatUint(uint64(node.Port), 10)
-		return respData, nil
+		return body, resp.StatusCode, nil
+	case 204:
+		return nil, resp.StatusCode, nil
+	case 400:
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return nil, 500, err
+		}
+		var e ErrorResponse
+		if err = json.Unmarshal(body, &e); err != nil {
+			return nil, 500, err
+		}
+		return nil, resp.StatusCode, errors.New(e.Text)
+	case 401:
+		return nil, resp.StatusCode, errors.New(http.StatusText(http.StatusUnauthorized))
+	case 404:
+		return nil, resp.StatusCode, errors.New(http.StatusText(http.StatusNotFound))
+	case 500:
+		return nil, resp.StatusCode, errors.New(http.StatusText(http.StatusInternalServerError))
+	case 501:
+		return nil, resp.StatusCode, errors.New(http.StatusText(http.StatusNotImplemented))
+	default:
+		return nil, resp.StatusCode, errors.New("意外的响应")
 	}
-
-	if resp.StatusCode == 400 {
-		return respData, errors.New(respData["error"])
-	}
-
-	return respData, nil
 }
