@@ -8,7 +8,6 @@ func TestAdd(t *testing.T) {
 	cli, err := New(Config{
 		Addr:          "http://127.0.0.1:20080",
 		Secret:        "123456",
-		TTL:           10,
 		TouchInterval: 8,
 		Timeout:       5,
 	})
@@ -61,7 +60,6 @@ func TestSet(t *testing.T) {
 	cli, err := New(Config{
 		Addr:          "http://127.0.0.1:20080",
 		Secret:        "123456",
-		TTL:           10,
 		TouchInterval: 8,
 		Timeout:       5,
 	})
@@ -113,7 +111,6 @@ func TestDiscovery(t *testing.T) {
 	cli, err := New(Config{
 		Addr:          "http://127.0.0.1:20080",
 		Secret:        "123456",
-		TTL:           10,
 		TouchInterval: 8,
 		Timeout:       5,
 	})

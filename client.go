@@ -13,7 +13,6 @@ import (
 type Client struct {
 	addr          string        // 服务端地址
 	secret        string        // 服务端api调用密码
-	ttl           time.Duration // 生命周期(秒)
 	touchInterval time.Duration // 自动触活的间隔时间(秒)
 	timeout       time.Duration // 操作超时时间(秒)
 }
@@ -22,7 +21,6 @@ type Client struct {
 type Config struct {
 	Addr          string // 服务端地址
 	Secret        string // 服务端api调用密码
-	TTL           uint   // 生命周期(秒)
 	TouchInterval uint   // 自动触活的间隔时间(秒)
 	Timeout       uint   // 操作超时时间(秒)
 }
@@ -36,13 +34,9 @@ type AutoTouchErrorHandler func(int, error)
 
 // 新建客户端实例
 func New(config Config) (*Client, error) {
-	if config.TouchInterval < config.TTL-2 {
-		return nil, errors.New("touchInterval参数至少要比ttl参数小2秒")
-	}
 	var cli Client
 	cli.addr = config.Addr
 	cli.secret = config.Secret
-	cli.ttl = time.Duration(config.TTL) * time.Second
 	cli.touchInterval = time.Duration(config.TouchInterval) * time.Second
 	cli.timeout = time.Duration(config.Timeout) * time.Second
 	// todo 这里要对addr做一些格式检查
